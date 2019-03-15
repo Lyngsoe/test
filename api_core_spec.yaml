@@ -1,0 +1,278 @@
+swagger: '2.0'
+info:
+  version: 0.0.1
+  title: "Raffle Answer API"
+  description: "This is the core API that raffle.ai provides for question/answer requests"
+
+basePath: "/raffle"
+tags:
+  - name: "answer-text"
+    description: "ask a question to the raffle bot using text and recieve a text answer back"
+  - name: "answer-voice"
+    description: "ask a question to the raffle bot using an audio file and get a text answer back"
+paths:
+  /get-answer-text:
+    post:
+      summary: "takes a text question and returns the best answer"
+      tags:
+        - answer-text
+      description: "ask a question by text and recieve an answer"
+      operationId: "services.core_search.api_ask.endpoints.get_answer_text"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+        - in: "body"
+          name: "Question"
+          description: "This should be a Question object"
+          required: true
+          schema:
+            $ref: "#/definitions/Question"
+      responses:
+        '200':
+          description: "ok"
+          schema:
+            $ref: '#/definitions/Answer'
+        '403':
+          description: "invalid token"
+          schema:
+            $ref: '#/definitions/token-error'
+        '405':
+          description: "invalid input"
+          schema:
+            $ref: '#/definitions/input-error'
+
+
+  /get-top-10-text:
+    post:
+      summary: "takes a text question and returns the top 10 best answers"
+      tags:
+        - answer-text
+      description: "get the top 10 answers for at question. The question should be in text."
+      operationId: "services.core_search.api_ask.endpoints.get_top_10_text"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+        - in: "body"
+          name: "Question"
+          description: "This should be a Question object"
+          required: true
+          schema:
+            $ref: "#/definitions/Question"
+      responses:
+        '200':
+          description: "ok"
+          schema:
+            $ref: '#/definitions/top-ten-answers'
+        '403':
+          description: "invalid token"
+          schema:
+            $ref: '#/definitions/token-error'
+        '405':
+          description: "invalid input"
+          schema:
+            $ref: '#/definitions/input-error'
+
+
+  /get-answer-voice:
+    post:
+      summary: "takes an audio file with a question and returns the best answer"
+      tags:
+        - answer-voice
+      description: "ask a question with audio file and recieve and answer in text"
+      operationId: "services.core_search.api_ask.endpoints.get_answer_voice"
+      consumes:
+        - "multipart/form-data"
+      produces:
+        - "application/json"
+      parameters:
+        - name: "AUDIO_FILE"
+          in: "formData"
+          description: "an audio file that contains the question. We accept the following file types: wav,mp3,acc,amr,flac,m4a,wma"
+          type: "file"
+          required: true
+        - name: "LANGUAGE"
+          in: "formData"
+          type: "string"
+          description: "langauge of the audio file. The format is the #BCP-47 identifier meaning en-US or en-GB for english and da-DK for danish. We support the languages of the data used to find the answer"
+        - name: "TOKEN"
+          in: "formData"
+          type: "string"
+        - name: "SESSION_ID"
+          in: "formData"
+          type: "string"
+
+
+
+      responses:
+        '200':
+          description: "ok"
+          schema:
+            $ref: '#/definitions/Answer'
+        '403':
+          description: "invalid token"
+          schema:
+            $ref: '#/definitions/token-error'
+        '405':
+          description: "invalid input"
+          schema:
+            $ref: '#/definitions/input-error'
+
+  /get-top-10-voice:
+    post:
+      summary: "takes an audio file with a question and returns the top 10 best answers"
+      tags:
+        - answer-voice
+      description: "ask a question with audio file and recieve the top 10 answers in text"
+      operationId: "services.core_search.api_ask.endpoints.get_top_10_voice"
+      consumes:
+        - "multipart/form-data"
+      produces:
+        - "application/json"
+      parameters:
+        - name: "AUDIO_FILE"
+          in: "formData"
+          description: "an audio file that contains the question. We accept the following file types: wav,mp3,acc,amr,flac,m4a,wma"
+          type: "file"
+          required: true
+        - name: "LANGUAGE"
+          in: "formData"
+          type: "string"
+          description: "langauge of the audio file. The format is the #BCP-47 identifier meaning en-US or en-GB for english and da-DK for danish. We support the languages of the data used to find the answer"
+        - name: "TOKEN"
+          in: "formData"
+          type: "string"
+        - name: "SESSION_ID"
+          in: "formData"
+          type: "string"
+
+      responses:
+        '200':
+          description: "ok"
+          schema:
+            $ref: '#/definitions/top-ten-answers'
+        '403':
+          description: "invalid token"
+          schema:
+            $ref: '#/definitions/token-error'
+        '405':
+          description: "invalid input"
+          schema:
+            $ref: '#/definitions/input-error'
+
+  /feedback:
+    post:
+      summary: "provide feedback about an answer"
+      tags:
+        - feedback
+      description: "takes an answer-id and a boolean rating (0 or 1) of the quality of the answer given the question"
+      operationId: "services.core_search.api_ask.endpoints.feedback"
+      consumes:
+        - "application/json"
+      parameters:
+        - in: "body"
+          name: "Feedback"
+          description: "This should be a feedback object"
+          required: true
+          schema:
+            $ref: "#/definitions/Feedback"
+
+
+
+      responses:
+        '200':
+          description: "ok"
+        '403':
+          description: "invalid token"
+          schema:
+            $ref: '#/definitions/token-error'
+        '405':
+          description: "invalid input"
+          schema:
+            $ref: '#/definitions/input-error'
+
+definitions:
+  session-id:
+    type: "string"
+    description: "The session id will be provided in the return call after the first request to the api. Please pass this along with any further questions related to the session."
+    example: "123458"
+
+  answer-id:
+    type: "string"
+    description: "The answer id can be used to provide feedback about a specific answer"
+    example: "12345-54321"
+
+  Token:
+    type: "string"
+    description: "This is the access-token which is provided to gain access to the data used to produce an answer"
+    example: "12345"
+
+  Question:
+    type: "object"
+    properties:
+      TEXT:
+        type: "string"
+        description: "This is the question that will be answered"
+        example: "Do I have insurance?"
+      TOKEN:
+        $ref: '#/definitions/Token'
+      SESSION_ID:
+          $ref: '#/definitions/session-id'
+
+  Feedback:
+    type: "object"
+    properties:
+      ANSWER_ID:
+          $ref: '#/definitions/answer-id'
+      SCORE:
+        type: "integer"
+        maximum: 1
+        minimum: 0
+        description: "1 if the answer was correct, 0 otherwise"
+      TOKEN:
+        $ref: '#/definitions/Token'
+
+
+  Answer:
+    type: "object"
+    properties:
+      ANSWER_ID:
+          $ref: '#/definitions/answer-id'
+      TEXT:
+        type: "string"
+        description: "This is the answer to the questions asked"
+        example: "The company does not provide insurance"
+      SCORE:
+        type: "number"
+        format: "float"
+        description: "A score between 0 and 1. Where 1 corresponding to the model being 100% sure that the answer correct"
+        example: 0.89
+      SOURCE_META:
+        type: "object"
+        description: "This is the meta data for the source of where the answer to the question was found. This may vary according the the source and data type. It will always be a dictionary/json. A key mapping to a value."
+      SESSION_ID:
+          $ref: '#/definitions/session-id'
+
+  top-ten-answers:
+    type: "array"
+    items:
+      $ref: '#/definitions/Answer'
+    maxItems: 10
+
+  input-error:
+    type: "object"
+    description: "is returned if the input could not be parsed"
+    properties:
+      ERROR_MSG:
+        type: "string"
+        example: "The input could not be parsed"
+  token-error:
+    type: "object"
+    description: "is returned if the token supplied by a question is invalid"
+    properties:
+      ERROR-MSG:
+        type: "string"
+        example: "The token is invalid"
